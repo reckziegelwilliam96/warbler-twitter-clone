@@ -1,11 +1,12 @@
 import os
+from tkinter.tix import Form
 
 from flask import Flask, render_template, request, flash, redirect, session, g
 from flask_debugtoolbar import DebugToolbarExtension
 from sqlalchemy.exc import IntegrityError
 
 
-from forms import UserAddForm, LoginForm, MessageForm
+from forms import UserAddForm, LoginForm, MessageForm, UserEditForm
 from models import db, connect_db, User, Message
 
 CURR_USER_KEY = "curr_user"
@@ -103,7 +104,7 @@ def login():
 
         if user:
             do_login(user)
-            flash(f"Hello, {user.username}!", "success")
+            flash(f"Hello, {user.username}!", 'success')
             
             return redirect("/")
 
@@ -119,7 +120,7 @@ def logout():
     user = g.user
     if user:
         do_logout()
-        flash(f"Bye, {user.username}!", "success")
+        flash(f"Bye, {user.username}!", 'success')
     
         return redirect("/")
    
@@ -219,10 +220,36 @@ def stop_following(follow_id):
 
 
 @app.route('/users/profile', methods=["GET", "POST"])
-def profile():
-    """Update profile for current user."""
+def show_edit_profile():
+    """Show profile edit page for current user."""
 
-    # IMPLEMENT THIS
+    if not g.user:
+        flash("Access unauthorized.", 'danger')
+        return redirect("/")
+    
+    form = UserEditForm()
+
+    if form.validate_on_submit():
+        try:
+            user = g.user
+            user = User(
+                username = form.username.data or user.username,
+                email = form.email.data or user.email,
+                image_url = form.image_url.data or user.image_url,
+                header_image_url = form.header_image_url.data or user.header_image_url,
+                bio = form.bio.data or user.bio,
+                location = form.location.data or user.location
+            )
+            db.session.add(user)
+            db.session.commit()
+
+            return render_template('users/detail.html', user=user)
+
+        except IntegrityError:
+            flash("Incorrect password", 'danger')
+            return redirect('/')
+
+    return render_template('users/edit.html', form=form)
 
 
 @app.route('/users/delete', methods=["POST"])
