@@ -4,6 +4,7 @@ from flask import Flask, render_template, request, flash, redirect, session, g
 from flask_debugtoolbar import DebugToolbarExtension
 from sqlalchemy.exc import IntegrityError
 
+
 from forms import UserAddForm, LoginForm, MessageForm
 from models import db, connect_db, User, Message
 
@@ -64,7 +65,7 @@ def signup():
     If the there already is a user with that username: flash message
     and re-present form.
     """
-
+    
     form = UserAddForm()
 
     if form.validate_on_submit():
@@ -75,6 +76,7 @@ def signup():
                 email=form.email.data,
                 image_url=form.image_url.data or User.image_url.default.arg,
             )
+            
             db.session.commit()
 
         except IntegrityError:
@@ -82,7 +84,7 @@ def signup():
             return render_template('users/signup.html', form=form)
 
         do_login(user)
-
+        
         return redirect("/")
 
     else:
@@ -102,6 +104,7 @@ def login():
         if user:
             do_login(user)
             flash(f"Hello, {user.username}!", "success")
+            
             return redirect("/")
 
         flash("Invalid credentials.", 'danger')
@@ -112,8 +115,16 @@ def login():
 @app.route('/logout')
 def logout():
     """Handle logout of user."""
-
-    # IMPLEMENT THIS
+    #user = User.authenticate(User.query.get(session[CURR_USER_KEY]).username, User.query.get(session[CURR_USER_KEY]).password)
+    user = g.user
+    if user:
+        do_logout()
+        flash(f"Bye, {user.username}!", "success")
+    
+        return redirect("/")
+   
+    form = UserAddForm()
+    return render_template("users/signup.html", form=form)
 
 
 ##############################################################################
@@ -297,7 +308,7 @@ def homepage():
                     .order_by(Message.timestamp.desc())
                     .limit(100)
                     .all())
-
+        
         return render_template('home.html', messages=messages)
 
     else:
