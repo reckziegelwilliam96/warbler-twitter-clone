@@ -48,6 +48,8 @@ class Likes(db.Model):
         unique=True
     )
 
+    messages = db.relationship('Message', secondary="User", backref='likes')
+
 
 class User(db.Model):
     """User in the system."""
@@ -198,6 +200,8 @@ class Message(db.Model):
     )
 
     user = db.relationship('User')
+
+    likes = db.relationship('Likes', secondary="User", backref='messages')
 
 
 def connect_db(app):

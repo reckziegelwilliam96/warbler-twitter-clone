@@ -52,13 +52,6 @@
                 <span class="text-muted">{{ msg.timestamp.strftime('%d %B %Y') }}</span>
                 <p>{{ msg.text }}</p>
               </div>
-              <form method="POST" action="/users/add_like/{{ msg.user.id }}" id="messages-form">
-                <button class="
-                  btn 
-                  btn-sm 
-                  {{'btn-primary' if msg.user.id in likes else 'btn-secondary'}}"
-                >
-                  <i class="fa fa-thumbs-up"></i> 
                 </button>
               </form>
             </li>
@@ -76,15 +69,30 @@
               <span class="text-muted">{{ msg.timestamp.strftime('%d %B %Y') }}</span>
               <p>{{ msg.text }}</p>
             </div>
-            <form method="POST" action="/users/add_like/{{ msg.id }}" id="messages-form">
-              <button class="
-                btn 
-                btn-sm 
-                {{'btn-primary' if msg.id in likes else 'btn-secondary'}}"
-              >
-                <i class="fa fa-thumbs-up"></i> 
-              </button>
-            </form>
+            <div class="likes-area">
+              {% if msg.id == g.user.likes.message_id %}
+                <form method="POST" action="/users/add_like/{{ msg.id }}" id="likes-form">
+                  <button class="
+                    btn 
+                    btn-sm 
+                    btn-primary"
+                  >
+                    <i class="fa fa-thumbs-up"></i> 
+                  </button>
+                </form>
+                {% else %}
+                <form method="POST" action="/users/remove_like/{{ msg.id }}" id="likes-form">
+                <button class="
+                  btn 
+                  btn-sm 
+                  btn-secondary"
+                >
+                  <i class="fa fa-thumbs-down"></i>
+                  </button>
+                </form>
+                {% endif %}
+              </form>
+            </div>
           </li>
           {% endif %}
         {% endfor %}

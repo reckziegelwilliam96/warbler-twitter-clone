@@ -7,7 +7,7 @@ from sqlalchemy.exc import IntegrityError
 
 
 from forms import UserAddForm, LoginForm, MessageForm, UserEditForm
-from models import db, connect_db, User, Message
+from models import db, connect_db, User, Message, Likes
 
 CURR_USER_KEY = "curr_user"
 
@@ -264,7 +264,53 @@ def delete_user():
     db.session.commit()
 
     return redirect("/signup")
+##############################################################################
+# Like routes:
 
+@app.route('/users/add_like/<int:msg_id>', methods=["POST"])
+def add_like(msg_id):
+
+    if not g.user:
+        flash("Access unauthorized.", 'danger')
+        return redirect("/")
+
+    user_id = g.user
+    like = Likes(user_id=user_id, message_id=msg_id)
+    db.session.add(like)
+    db.session.commit()
+
+    messages = (Message
+                .query
+                .order_by(Message.timestamp.desc())
+                .limit(100)
+                .all())
+
+
+    return redirect("/home.html", messages=messages)
+
+@app.route('/users/remove_like/<int:msg_id>', methods=["POST"])
+def remove_like(msg_id):
+
+    if not g.user:
+        flash("Access unauthorized.", 'danger')
+        return redirect("/")
+
+    liked_message = Message.query.get(msg_id)
+    db.session.delete(liked_message)
+    db.session.commit()
+
+    return redirect("/")
+
+@app.route('/users/<int:user_id>/likes')
+def users_likes(user_id):
+    """Show list of liked posts of this user."""
+
+    if not g.user:
+        flash("Access unauthorized.", "danger")
+        return redirect("/")
+
+    likes = Likes.query.get_or_404(user_id)
+    return render_template('users/likes.html', likes=likes)
 
 ##############################################################################
 # Messages routes:
