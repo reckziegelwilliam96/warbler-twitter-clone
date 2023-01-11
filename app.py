@@ -77,7 +77,7 @@ def signup():
                 email=form.email.data,
                 image_url=form.image_url.data or User.image_url.default.arg,
             )
-            
+            db.session.add()
             db.session.commit()
 
         except IntegrityError:
@@ -227,19 +227,17 @@ def show_edit_profile():
         flash("Access unauthorized.", 'danger')
         return redirect("/")
     
+    user = g.user
     form = UserEditForm()
 
     if form.validate_on_submit():
         try:
-            user = g.user
-            user = User(
-                username = form.username.data or user.username,
-                email = form.email.data or user.email,
-                image_url = form.image_url.data or user.image_url,
-                header_image_url = form.header_image_url.data or user.header_image_url,
-                bio = form.bio.data or user.bio,
-                location = form.location.data or user.location
-            )
+            user.username = form.username.data or user.username
+            user.email = form.email.data or user.email
+            user.image_url = form.image_url.data or user.image_url
+            user.header_image_url = form.header_image_url.data or user.header_image_url
+            user.bio = form.bio.data or user.bio
+            user.location = form.location.data or user.location
             db.session.add(user)
             db.session.commit()
 

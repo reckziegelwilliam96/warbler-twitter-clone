@@ -40,7 +40,32 @@
 
     <div class="col-lg-6 col-md-8 col-sm-12">
       <ul class="list-group" id="messages">
+        {% if g.user.messages %}
+          {% for msg in g.user.messages %}
+            <li class="list-group-item">
+              <a href="/messages/{{ msg.id  }}" class="message-link"/>
+              <a href="/users/{{ msg.user.id }}">
+                <img src="{{ msg.image_url }}" alt="" class="timeline-image">
+              </a>
+              <div class="message-area">
+                <a href="/users/{{ msg.user.id }}">@{{ msg.user.username }}</a>
+                <span class="text-muted">{{ msg.timestamp.strftime('%d %B %Y') }}</span>
+                <p>{{ msg.text }}</p>
+              </div>
+              <form method="POST" action="/users/add_like/{{ msg.user.id }}" id="messages-form">
+                <button class="
+                  btn 
+                  btn-sm 
+                  {{'btn-primary' if msg.user.id in likes else 'btn-secondary'}}"
+                >
+                  <i class="fa fa-thumbs-up"></i> 
+                </button>
+              </form>
+            </li>
+          {% endfor %}
+        {% endif %}
         {% for msg in messages %}
+          {% if g.user.is_following(msg.user) %}
           <li class="list-group-item">
             <a href="/messages/{{ msg.id  }}" class="message-link"/>
             <a href="/users/{{ msg.user.id }}">
@@ -61,6 +86,7 @@
               </button>
             </form>
           </li>
+          {% endif %}
         {% endfor %}
       </ul>
     </div>
