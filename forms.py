@@ -21,11 +21,11 @@ class UserEditForm(FlaskForm):
     """Form for editing users."""
 
     username = StringField('Username', validators=[DataRequired()])
-    email = StringField('E-mail', validators=[DataRequired(), Email()])
+    email = StringField('E-mail', validators=[Optional(), Email()])
     password = PasswordField('Password', validators=[Length(min=6)])
     image_url = StringField('(Optional) Image URL', validators=[Optional()])
     header_image_url = StringField('(Optional) Header Image URL', validators=[Optional()])
-    bio = StringField('User Bio', validators=[Length(min=20, max=300)])
+    bio = StringField('User Bio', validators=[Optional(), Length(min=20, max=300)])
     location = StringField('User Location', validators=[Optional()])
 
 class LoginForm(FlaskForm):

@@ -59,7 +59,6 @@
         {% endif %}
         {% for msg in messages %}
           {% if g.user.is_following(msg.user) %}
-          <h4>Followed User's Messages</h4>
           <li class="list-group-item">
             <a href="/messages/{{ msg.id  }}" class="message-link"/>
             <a href="/users/{{ msg.user.id }}">
@@ -71,67 +70,19 @@
               <p>{{ msg.text }}</p>
             </div>
             <div class="likes-area">
-              {% if msg.id == g.user.likes.message_id %}
-                <form method="POST" action="/users/add_like/{{ msg.id }}" id="likes-form">
-                  <button class="
-                    btn 
-                    btn-sm 
-                    btn-primary"
-                  >
-                    <i class="fa fa-thumbs-up"></i> 
-                  </button>
-                </form>
-                {% else %}
-                <form method="POST" action="/users/remove_like/{{ msg.id }}" id="likes-form">
+              <form method="POST" action="/messages/{{ msg.id }}/like" class="messages-like">
                 <button class="
                   btn 
                   btn-sm 
-                  btn-secondary"
+                  {{'btn-primary' if msg.id in likes else 'btn-secondary'}}"
                 >
-                  <i class="fa fa-thumbs-down"></i>
-                  </button>
-                </form>
-                {% endif %}
+                  <i class="fa fa-thumbs-up"></i> 
+                </button>
+              </form>
               </form>
             </div>
           </li>
           {% endif %}
-          <h4>Other Users' Messages</h4>
-          <li class="list-group-item">
-            <a href="/messages/{{ msg.id  }}" class="message-link"/>
-            <a href="/users/{{ msg.user.id }}">
-              <img src="{{ msg.user.image_url }}" alt="" class="timeline-image">
-            </a>
-            <div class="message-area">
-              <a href="/users/{{ msg.user.id }}">@{{ msg.user.username }}</a>
-              <span class="text-muted">{{ msg.timestamp.strftime('%d %B %Y') }}</span>
-              <p>{{ msg.text }}</p>
-            </div>
-            <div class="likes-area">
-              {% if msg.id == g.user.likes.message_id %}
-                <form method="POST" action="/users/add_like/{{ msg.id }}" id="likes-form">
-                  <button class="
-                    btn 
-                    btn-sm 
-                    btn-primary"
-                  >
-                    <i class="fa fa-thumbs-up"></i> 
-                  </button>
-                </form>
-                {% else %}
-                <form method="POST" action="/users/remove_like/{{ msg.id }}" id="likes-form">
-                <button class="
-                  btn 
-                  btn-sm 
-                  btn-secondary"
-                >
-                  <i class="fa fa-thumbs-down"></i>
-                  </button>
-                </form>
-                {% endif %}
-              </form>
-            </div>
-          </li>
         {% endfor %}
       </ul>
     </div>

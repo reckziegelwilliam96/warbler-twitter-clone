@@ -114,10 +114,8 @@ class User(db.Model):
     )
 
     likes = db.relationship(
-        "User",
-        secondary="likes",
-        primaryjoin=(Likes.user_id == id),
-        secondaryjoin=(Likes.message_id == id)
+        "Message",
+        secondary="likes"
     )
 
     def __repr__(self):
