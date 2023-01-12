@@ -164,6 +164,54 @@ def users_show(user_id):
                 .all())
     return render_template('users/show.html', user=user, messages=messages)
 
+@app.route('/users/profile', methods=["GET", "POST"])
+def show_edit_profile():
+    """Show profile edit page for current user."""
+
+    if not g.user:
+        flash("Access unauthorized.", 'danger')
+        return redirect("/")
+    
+    user = g.user
+    form = UserEditForm()
+
+    if form.validate_on_submit():
+        try:
+            user.username = form.username.data or user.username
+            user.email = form.email.data or user.email
+            user.image_url = form.image_url.data or user.image_url
+            user.header_image_url = form.header_image_url.data or user.header_image_url
+            user.bio = form.bio.data or user.bio
+            user.location = form.location.data or user.location
+            db.session.add(user)
+            db.session.commit()
+
+            return render_template('users/detail.html', user=user)
+
+        except IntegrityError:
+            flash("Incorrect password", 'danger')
+            return redirect('/')
+
+    return render_template('users/edit.html', form=form)
+
+
+@app.route('/users/delete', methods=["POST"])
+def delete_user():
+    """Delete user."""
+
+    if not g.user:
+        flash("Access unauthorized.", "danger")
+        return redirect("/")
+
+    do_logout()
+
+    db.session.delete(g.user)
+    db.session.commit()
+
+    return redirect("/signup")
+
+##############################################################################
+# General follow routes:
 
 @app.route('/users/<int:user_id>/following')
 def show_following(user_id):
@@ -219,51 +267,6 @@ def stop_following(follow_id):
     return redirect(f"/users/{g.user.id}/following")
 
 
-@app.route('/users/profile', methods=["GET", "POST"])
-def show_edit_profile():
-    """Show profile edit page for current user."""
-
-    if not g.user:
-        flash("Access unauthorized.", 'danger')
-        return redirect("/")
-    
-    user = g.user
-    form = UserEditForm()
-
-    if form.validate_on_submit():
-        try:
-            user.username = form.username.data or user.username
-            user.email = form.email.data or user.email
-            user.image_url = form.image_url.data or user.image_url
-            user.header_image_url = form.header_image_url.data or user.header_image_url
-            user.bio = form.bio.data or user.bio
-            user.location = form.location.data or user.location
-            db.session.add(user)
-            db.session.commit()
-
-            return render_template('users/detail.html', user=user)
-
-        except IntegrityError:
-            flash("Incorrect password", 'danger')
-            return redirect('/')
-
-    return render_template('users/edit.html', form=form)
-
-
-@app.route('/users/delete', methods=["POST"])
-def delete_user():
-    """Delete user."""
-
-    if not g.user:
-        flash("Access unauthorized.", "danger")
-        return redirect("/")
-
-    do_logout()
-
-    db.session.delete(g.user)
-    db.session.commit()
-
-    return redirect("/signup")
 ##############################################################################
 # Like routes:
 
@@ -274,19 +277,11 @@ def add_like(msg_id):
         flash("Access unauthorized.", 'danger')
         return redirect("/")
 
-    user_id = g.user
-    like = Likes(user_id=user_id, message_id=msg_id)
-    db.session.add(like)
+    liked_message = Message.query.get_or_404(msg_id)
+    g.user.likes.append(liked_message)
     db.session.commit()
 
-    messages = (Message
-                .query
-                .order_by(Message.timestamp.desc())
-                .limit(100)
-                .all())
-
-
-    return redirect("/home.html", messages=messages)
+    return redirect('/')
 
 @app.route('/users/remove_like/<int:msg_id>', methods=["POST"])
 def remove_like(msg_id):
@@ -296,12 +291,12 @@ def remove_like(msg_id):
         return redirect("/")
 
     liked_message = Message.query.get(msg_id)
-    db.session.delete(liked_message)
+    g.user.likes.remove(liked_message)
     db.session.commit()
 
-    return redirect("/")
+    return redirect('/')
 
-@app.route('/users/<int:user_id>/likes')
+@app.route('/users/<int:user_id>/likes', methods=["GET"])
 def users_likes(user_id):
     """Show list of liked posts of this user."""
 
@@ -309,8 +304,7 @@ def users_likes(user_id):
         flash("Access unauthorized.", "danger")
         return redirect("/")
 
-    likes = Likes.query.get_or_404(user_id)
-    return render_template('users/likes.html', likes=likes)
+    return redirect(f'users/{g.user.id}/likes.html')
 
 ##############################################################################
 # Messages routes:

@@ -48,7 +48,8 @@ class Likes(db.Model):
         unique=True
     )
 
-    messages = db.relationship('Message', secondary="User", backref='likes')
+    messages = db.relationship('Message')
+
 
 
 class User(db.Model):
@@ -113,8 +114,10 @@ class User(db.Model):
     )
 
     likes = db.relationship(
-        'Message',
-        secondary="likes"
+        "User",
+        secondary="likes",
+        primaryjoin=(Likes.user_id == id),
+        secondaryjoin=(Likes.message_id == id)
     )
 
     def __repr__(self):
@@ -200,8 +203,6 @@ class Message(db.Model):
     )
 
     user = db.relationship('User')
-
-    likes = db.relationship('Likes', secondary="User", backref='messages')
 
 
 def connect_db(app):
