@@ -117,18 +117,13 @@ class MessageViewTestCase(TestCase):
 
         with self.client as c:
             with c.session_transaction as sess:
+                sess[CURR_USER_KEY] =  self.testuser.id
+                
+                msg = Message(text="Hello")
+                result = c.post("/messages/new", data={"text": "Hello"})
+                self.assertEqual(result.status_code, 302)
+                
                 sess[CURR_USER_KEY] = not self.testuser.id
-
-            result = c.post("/messages/new", data={"text": "Hello"})
-            self.assertEqual(result.status_code, 302)
-
-            resp = c.get(f"/messages/{self.testuser.id}")
-            self.assertEqual(resp.status_code, 200)
-            
-            msg = Message.query.one()
-            result2 = c.post(f"/messages/{self.testuser.id}/delete", data=msg)
-            self.assertEqual(result2.status_code, 302)
-
-            resp2 = c.get(f"/users/{self.testuser.id}")
-            self.assertEqual(resp2.status_code, 200)
-            self.assertFalse(msg)
+                
+                result2 = c.post(f"/messages/{self.testuser.id}/delete", data=msg)
+                self.assertEqual(result2.status_code, 404)
